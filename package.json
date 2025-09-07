@@ -1,0 +1,63 @@
+{
+  "name": "mcp-debugger-server",
+  "version": "0.1.0",
+  "description": "MCP Debugger Server - Model Context Protocol server for debugging, testing, and code analysis",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "debugger",
+    "debugging",
+    "typescript",
+    "testing",
+    "linting",
+    "code-analysis"
+  ],
+  "author": "MCP Debugger Team",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "zod": "^3.22.4",
+    "node-pty": "^1.0.0",
+    "simple-git": "^3.20.0",
+    "chokidar": "^3.5.3",
+    "glob": "^10.3.10",
+    "tmp": "^0.2.1",
+    "fs-extra": "^11.2.0",
+    "diff": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/fs-extra": "^11.0.4",
+    "@types/diff": "^5.0.9",
+    "@types/glob": "^8.1.0",
+    "@types/tmp": "^0.2.6",
+    "typescript": "^5.3.0",
+    "tsx": "^4.6.0",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.8",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/mcp-debugger-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/mcp-debugger-server/issues"
+  },
+  "homepage": "https://github.com/your-org/mcp-debugger-server#readme"
+}

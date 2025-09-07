@@ -1,0 +1,1 @@
+{"version":3,"file":"GitTools.d.ts","sourceRoot":"","sources":["../../src/tools/GitTools.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,iBAAiB,EAAiB,MAAM,mBAAmB,CAAC;AAE1E,qBAAa,QAAQ;IACnB,OAAO,CAAC,OAAO,CAAoB;IACnC,OAAO,CAAC,GAAG,CAAY;gBAEX,MAAM,EAAE,iBAAiB;IAKrC,aAAa,CAAC,MAAM,EAAE,GAAG,GAAG,IAAI;YA4ClB,eAAe;YAoCf,aAAa;YAgCb,eAAe;IAsDvB,KAAK,IAAI,OAAO,CAAC,IAAI,CAAC;CAG7B"}
