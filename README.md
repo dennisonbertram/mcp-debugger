@@ -39,15 +39,245 @@ A comprehensive Model Context Protocol (MCP) server that provides debugging, tes
 
 ## Installation
 
+### Local Development Setup
+
 ```bash
+# Clone the repository
+git clone https://github.com/dennisonbertram/mcp-debugger.git
+cd mcp-debugger
+
 # Install dependencies
 npm install
 
 # Build the server
 npm run build
 
-# Or run directly with ts-node
+# Or run directly with ts-node (development)
 npm run dev
+```
+
+### Cloud Code IDE Integration
+
+#### Prerequisites
+- [Google Cloud Code](https://cloud.google.com/code) extension installed in VS Code/IntelliJ
+- Node.js 18+ installed
+- Git repository initialized in your project
+
+#### Quick Start with Cloud Code
+
+1. **Install the MCP Debugger Server globally:**
+```bash
+npm install -g https://github.com/dennisonbertram/mcp-debugger.git
+```
+
+2. **Add to your Cloud Code MCP configuration:**
+```json
+{
+  "mcp": {
+    "servers": {
+      "debugger": {
+        "command": "mcp-debugger-server",
+        "args": [],
+        "env": {
+          "WORKSPACE_DIR": "${workspaceFolder}"
+        }
+      }
+    }
+  }
+}
+```
+
+3. **Alternative: Run locally in your project:**
+```bash
+# Add to package.json scripts
+{
+  "scripts": {
+    "mcp-debugger": "node dist/index.js"
+  }
+}
+```
+
+#### Cloud Code Configuration File
+
+Create or update your `.vscode/settings.json`:
+
+```json
+{
+  "cloudcode.mcp.enabled": true,
+  "cloudcode.mcp.servers": {
+    "debugger": {
+      "command": "node",
+      "args": ["${workspaceFolder}/node_modules/@dennisonbertram/mcp-debugger/dist/index.js"],
+      "env": {
+        "WORKSPACE_DIR": "${workspaceFolder}",
+        "LOG_LEVEL": "info"
+      }
+    }
+  }
+}
+```
+
+#### IntelliJ Cloud Code Configuration
+
+For IntelliJ IDEA with Cloud Code:
+
+1. Go to **Settings** → **Tools** → **Cloud Code** → **MCP**
+2. Add new MCP server:
+   - **Name**: MCP Debugger
+   - **Command**: `node`
+   - **Arguments**: `${project.dir}/node_modules/@dennisonbertram/mcp-debugger/dist/index.js`
+   - **Environment Variables**:
+     - `WORKSPACE_DIR=${project.dir}`
+     - `LOG_LEVEL=info`
+
+### MCP-Cloud Platform Deployment
+
+For cloud-hosted deployment using MCP-Cloud platform:
+
+```bash
+# Deploy to MCP-Cloud (requires API key)
+curl -X POST https://api.mcp-cloud.ai/v1/servers \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "my-debugger-server",
+    "template": "custom",
+    "env": {
+      "WORKSPACE_DIR": "/app",
+      "LOG_LEVEL": "info"
+    }
+  }'
+```
+
+### Docker Deployment
+
+```dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY dist/ ./dist/
+EXPOSE 3000
+
+CMD ["node", "dist/index.js"]
+```
+
+```bash
+# Build and run
+docker build -t mcp-debugger .
+docker run -p 3000:3000 -e WORKSPACE_DIR=/app mcp-debugger
+```
+
+### MCP-Cloud Integration
+
+The MCP Debugger Server can be deployed and managed through the MCP-Cloud platform for enterprise-scale usage:
+
+#### Authentication Setup
+```bash
+# Set API key for MCP-Cloud
+export MCP_API_KEY="mcp_sk_your_api_key_here"
+```
+
+#### Python Client Integration
+```python
+import requests
+
+def debug_with_mcp(prompt, session_id=None):
+    url = "https://your-server.mcp-cloud.ai/v1/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {os.environ['MCP_API_KEY']}"
+    }
+
+    data = {
+        "model": "claude-3-5-sonnet",
+        "messages": [{"role": "user", "content": prompt}],
+        "context_id": session_id  # For maintaining debug context
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+    return response.json()
+```
+
+#### JavaScript/Node.js Client
+```javascript
+async function debugWithMCP(prompt, sessionId = null) {
+  const response = await fetch('https://your-server.mcp-cloud.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.MCP_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: 'claude-3-5-sonnet',
+      messages: [{ role: 'user', content: prompt }],
+      context_id: sessionId
+    })
+  });
+
+  return response.json();
+}
+```
+
+#### Real-time Streaming with SSE
+```javascript
+// Enable streaming for real-time debug output
+const eventSource = new EventSource(
+  'https://your-server.mcp-cloud.ai/api/servers/debug-session/events',
+  {
+    headers: {
+      'Authorization': `Bearer ${process.env.MCP_API_KEY}`
+    }
+  }
+);
+
+eventSource.addEventListener('debug:output', (event) => {
+  const data = JSON.parse(event.data);
+  console.log('Debug output:', data.message);
+});
+
+eventSource.addEventListener('breakpoint:hit', (event) => {
+  const data = JSON.parse(event.data);
+  console.log('Breakpoint hit at line:', data.line);
+});
+```
+
+### Workflow Integration (n8n, Zapier, etc.)
+
+#### n8n Integration Example
+```javascript
+// In an n8n Function node
+const axios = require('axios');
+
+async function debugCode(codeSnippet) {
+  const response = await axios.post(
+    'https://your-server.mcp-cloud.ai/v1/chat/completions',
+    {
+      model: "claude-3-5-sonnet",
+      messages: [
+        {
+          role: "system",
+          content: "You are a debugging assistant. Analyze the following code for issues."
+        },
+        {
+          role: "user",
+          content: codeSnippet
+        }
+      ],
+      stream: true  // Enable streaming for real-time responses
+    },
+    {
+      headers: {
+        'Authorization': `Bearer ${$credentials.mcpApi.apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+
+  return response.data;
+}
 ```
 
 ## Configuration
@@ -93,7 +323,41 @@ npm run dev
 WORKSPACE_DIR=/my/project npm start
 ```
 
-### MCP Client Integration
+## MCP Client Integration
+
+### Claude Desktop (One-Line Setup)
+
+**Quick setup command:**
+```bash
+# Add to Claude Desktop config (one line)
+echo '{"mcpServers":{"debugger":{"command":"node","args":["/path/to/mcp-debugger/dist/index.js"],"env":{"WORKSPACE_DIR":"'"$PWD"'"}}}}' >> ~/Library/Application\ Support/Claude/claude_desktop_config.json
+```
+
+**Or manually edit the config file:**
+```bash
+# macOS/Linux
+code ~/Library/Application\ Support/Claude/claude_desktop_config.json
+
+# Windows
+code %APPDATA%\Claude\claude_desktop_config.json
+```
+
+**Add this configuration:**
+```json
+{
+  "mcpServers": {
+    "debugger": {
+      "command": "node",
+      "args": ["/path/to/mcp-debugger/dist/index.js"],
+      "env": {
+        "WORKSPACE_DIR": "/path/to/your/project"
+      }
+    }
+  }
+}
+```
+
+### Programmatic Client Integration
 
 The server communicates via stdio using the MCP protocol. Connect it to any MCP-compatible client:
 
@@ -115,6 +379,78 @@ const transport = new StdioClientTransport({
 
 await client.connect(transport);
 await client.initialize();
+```
+
+### Available Client Libraries
+
+#### Python MCP Client
+```python
+import asyncio
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
+
+async def main():
+    # Connect to MCP Debugger Server
+    server_params = StdioServerParameters(
+        command="node",
+        args=["/path/to/mcp-debugger/dist/index.js"],
+        env={"WORKSPACE_DIR": "/your/project"}
+    )
+
+    async with stdio_client(server_params) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+
+            # Use debugging tools
+            result = await session.call_tool("open_debug_session", {
+                "kind": "node",
+                "entry": "app.js"
+            })
+
+            print("Debug session opened:", result)
+
+asyncio.run(main())
+```
+
+#### Java MCP Client
+```java
+import io.modelcontextprotocol.client.McpClient;
+import io.modelcontextprotocol.client.transport.StdioClientTransport;
+
+public class DebugClient {
+    public static void main(String[] args) {
+        // Create MCP client
+        McpClient client = McpClient.builder()
+            .name("Debug Client")
+            .version("1.0.0")
+            .build();
+
+        // Connect via stdio
+        StdioClientTransport transport = new StdioClientTransport(
+            "node",
+            List.of("/path/to/mcp-debugger/dist/index.js")
+        );
+
+        client.connect(transport);
+
+        // Use debugging capabilities
+        ToolResult result = client.callTool("open_debug_session",
+            Map.of("kind", "node", "entry", "app.js"));
+
+        System.out.println("Debug session: " + result);
+    }
+}
+```
+
+#### cURL for Testing
+```bash
+# Test server health
+curl -X POST http://localhost:3000/health
+
+# Test MCP protocol (if using HTTP transport)
+curl -X POST http://localhost:3000/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-06-18"},"id":1}'
 ```
 
 ### Example Workflow
@@ -347,11 +683,45 @@ this.myCustomTool.registerTools(this.server);
 
 MIT License - see LICENSE file for details.
 
+## Supported Integrations
+
+### IDEs and Editors
+- **VS Code**: Full Cloud Code integration
+- **IntelliJ IDEA**: Cloud Code plugin support
+- **Claude Desktop**: Native MCP support
+- **Cursor**: MCP protocol support
+- **Windsurf**: MCP integration
+- **Zed**: MCP support
+
+### Cloud Platforms
+- **MCP-Cloud**: Enterprise deployment platform
+- **Google Cloud Code**: Direct IDE integration
+- **Docker**: Containerized deployment
+- **Kubernetes**: Orchestrated deployments
+
+### Workflow Automation
+- **n8n**: Visual workflow integration
+- **Zapier**: API-based integration
+- **Make.com**: Workflow automation
+- **GitHub Actions**: CI/CD integration
+
+### Programming Languages
+- **TypeScript/JavaScript**: Native support
+- **Python**: Debug adapter protocol
+- **Go**: Delve integration
+- **Java**: JDWP support
+- **C#**: .NET debugging
+- **C/C++**: GDB/LLDB support
+- **PHP**: Xdebug integration
+- **Ruby**: Ruby debugger
+- **Rust**: Native debugging
+
 ## Support
 
 For issues and questions:
-- GitHub Issues: [Report bugs and request features](https://github.com/your-org/mcp-debugger-server/issues)
-- Documentation: [Full API reference](https://github.com/your-org/mcp-debugger-server/docs)
+- GitHub Issues: [Report bugs and request features](https://github.com/dennisonbertram/mcp-debugger/issues)
+- Documentation: [Full API reference](https://github.com/dennisonbertram/mcp-debugger#readme)
+- Discussions: [Community support](https://github.com/dennisonbertram/mcp-debugger/discussions)
 
 ## Changelog
 
